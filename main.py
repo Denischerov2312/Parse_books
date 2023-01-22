@@ -1,4 +1,5 @@
 import os
+import argparse
 from os.path import split
 from os.path import join
 from urllib.parse import urljoin
@@ -10,12 +11,54 @@ from bs4 import BeautifulSoup
 from pathvalidate import sanitize_filename
 
 
-def get_book(id):
-    response = requests.get(f'https://tululu.org/b{id}/')
-    title = fing_title_of_book(response)
-    image_url = find_image_url(response)
+def parse_book_page(content):
+    soup = BeautifulSoup(content, 'lxml')
+    title = fing_title(soup)
+    style = find_style(soup)
     text_url = f'https://tululu.org/txt.php?id={id}'
-    return title, text_url, image_url
+    comments = find_comments(soup)
+    image_url = find_image_url(soup)
+    book = {
+        'title': title,
+        'style': style,
+        'text_url': text_url,
+        'comments': comments,
+        'image_url': image_url,
+    }
+    return book
+
+
+def find_comments(soup):
+    texts = soup.find('div', id='content').find_all('div', class_='texts')
+    comments = []
+    for comment in texts:
+        comments.append(comment.find('span').text)
+    return comments
+
+
+def find_style(soup):
+    styles = soup.find('div', id='content').find('span', class_='d_book')
+    styles = styles.find_all('a')
+    all = []
+    for style in styles:
+        all.append(style.text)
+    return all
+
+
+def fing_title(soup):
+    heading = soup.find('h1').text
+    title = heading.split('::')[0]
+    return title.strip()
+
+
+def find_image_url(soup):
+    url = soup.find('div', class_='bookimage').find('img')['src']
+    return urljoin('https://tululu.org/', url)
+
+
+def check_for_redirect(response):
+    if response.history:
+        raise requests.HTTPError
 
 
 def download_txt(url, filename, folder='books/'):
@@ -29,22 +72,6 @@ def download_txt(url, filename, folder='books/'):
     with open(filepath, 'w', encoding='UTF-8') as file:
         file.write(response.text)
     return filepath
-
-
-def fing_title_of_book(response):
-    try:
-        check_for_redirect(response)
-    except requests.HTTPError:
-        return None
-    soup = BeautifulSoup(response.text, 'lxml')
-    heading = soup.find('h1').text
-    title = heading.split('::')[0]
-    return title.strip()
-
-
-def check_for_redirect(response):
-    if response.history:
-        raise requests.HTTPError
 
 
 def download_image(url, folder='book_covers/'):
@@ -62,27 +89,26 @@ def download_image(url, folder='book_covers/'):
     return filepath
 
 
-def find_image_url(response):
-    try:
-        check_for_redirect(response)
-    except requests.HTTPError:
-        return None
-    soup = BeautifulSoup(response.text, 'lxml')
-    url = soup.find('div', class_='bookimage').find('img')['src']
-    return urljoin('https://tululu.org/', url)
+def get_args():
+    parser = argparse.ArgumentParser(description='Скачивает книги')
+    parser.add_argument('start_id', default=1, type=int, nargs='?')
+    parser.add_argument('end_id', default=10, type=int, nargs='?')
+    return parser.parse_args()
 
 
 def main():
-    id = 0
-    for _ in range(10):
-        id += 1
+    args = get_args()
+    start_id = args.start_id
+    end_id = args.end_id
+    for id in range(start_id, end_id):
+        response = requests.get(f'https://tululu.org/b{id}/')
         try:
-            title, text_url, image_url = get_book(id)
+            check_for_redirect(response)
         except requests.HTTPError:
+            print('Не существует такой ссылки')
             continue
-        filename = f'{id}.{title}'
-        download_txt(text_url, filename)
-        download_image(image_url)
+        book = parse_book_page(response.text)
+        print(book['title'])
 
 
 if __name__ == '__main__':
