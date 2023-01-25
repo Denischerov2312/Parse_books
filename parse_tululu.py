@@ -63,7 +63,12 @@ def download_txt(url, filename, folder='books/'):
     if not url:
         return None
     response = requests.get(url)
-    response.raise_for_status()
+    try:
+        response.raise_for_status()
+        check_for_redirect(response)
+    except requests.HTTPError:
+        print(f'Не существует такой ссылки - {url}')
+        return None
     os.makedirs(folder, exist_ok=True)
     filepath = join(folder, sanitize_filename(filename))
     with open(filepath, 'w', encoding='UTF-8') as file:
@@ -75,7 +80,12 @@ def download_image(url, folder='book_covers/'):
     if not url:
         return None
     response = requests.get(url)
-    response.raise_for_status()
+    try:
+        response.raise_for_status()
+        check_for_redirect(response)
+    except requests.HTTPError:
+        print(f'Не существует такой ссылки - {url}')
+        return None
     path = urlsplit(url).path
     filename = unquote(split(path)[-1])
     os.makedirs(folder, exist_ok=True)
@@ -98,6 +108,7 @@ def main():
         url = f'https://tululu.org/b{id}/'
         response = requests.get(url)
         try:
+            response.raise_for_status()
             check_for_redirect(response)
         except requests.HTTPError:
             print(f'Не существует такой ссылки - {url}')
