@@ -15,13 +15,11 @@ def parse_book_page(content):
     soup = BeautifulSoup(content, 'lxml')
     title = fing_title(soup)
     style = find_style(soup)
-    text_url = f'https://tululu.org/txt.php?id={id}'
     comments = find_comments(soup)
     image_url = find_image_url(soup)
     book = {
         'title': title,
         'style': style,
-        'text_url': text_url,
         'comments': comments,
         'image_url': image_url,
     }
@@ -63,8 +61,7 @@ def check_for_redirect(response):
 
 def download_txt(url, filename, folder='books/'):
     if not url:
-        print('Не существует такой ссылки')
-        return
+        return None
     response = requests.get(url)
     response.raise_for_status()
     os.makedirs(folder, exist_ok=True)
@@ -76,8 +73,7 @@ def download_txt(url, filename, folder='books/'):
 
 def download_image(url, folder='book_covers/'):
     if not url:
-        print('Не существует такой ссылки')
-        return
+        return None
     response = requests.get(url)
     response.raise_for_status()
     path = urlsplit(url).path
@@ -98,17 +94,19 @@ def get_args():
 
 def main():
     args = get_args()
-    start_id = args.start_id
-    end_id = args.end_id
-    for id in range(start_id, end_id):
-        response = requests.get(f'https://tululu.org/b{id}/')
+    for id in range(args.start_id, args.end_id):
+        url = f'https://tululu.org/b{id}/'
+        response = requests.get(url)
         try:
             check_for_redirect(response)
         except requests.HTTPError:
-            print('Не существует такой ссылки')
+            print(f'Не существует такой ссылки - {url}')
             continue
         book = parse_book_page(response.text)
-        print(book['title'])
+        filename = f"{id}.{book['title']}"
+        text_url = f'https://tululu.org/txt.php?id={id}'
+        download_txt(text_url, filename)
+        download_image(book['image_url'])
 
 
 if __name__ == '__main__':
