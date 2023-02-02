@@ -104,8 +104,8 @@ def get_args():
 
 def main():
     args = get_args()
-    for id in range(args.start_id, args.end_id):
-        url = f'https://tululu.org/b{id}/'
+    for book_id in range(args.start_id, args.end_id):
+        url = f'https://tululu.org/b{book_id}/'
         response = requests.get(url)
         try:
             response.raise_for_status()
@@ -114,8 +114,8 @@ def main():
             print(f'Не существует такой ссылки - {url}')
             continue
         book = parse_book_page(response.text)
-        filename = f"{id}.{book['title']}"
-        text_url = f'https://tululu.org/txt.php?id={id}'
+        filename = f"{book_id}.{book['title']}"
+        text_url = f'https://tululu.org/txt.php?id={book_id}'
         download_txt(text_url, filename)
         download_image(book['image_url'])
 
