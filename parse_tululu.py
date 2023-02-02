@@ -5,6 +5,7 @@ from os.path import join
 from urllib.parse import urljoin
 from urllib.parse import unquote
 from urllib.parse import urlsplit
+from urllib.parse import urlencode
 
 import requests
 from bs4 import BeautifulSoup
@@ -115,7 +116,9 @@ def main():
             continue
         book = parse_book_page(response.text)
         filename = f"{book_id}.{book['title']}"
-        text_url = f'https://tululu.org/txt.php?id={book_id}'
+        params = {'id': book_id}
+        params = urlencode(params)
+        text_url = f'https://tululu.org/txt.php?{params}'
         download_txt(text_url, filename)
         download_image(book['image_url'])
 
