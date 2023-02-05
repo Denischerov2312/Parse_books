@@ -29,18 +29,14 @@ def parse_book_page(content):
 
 def find_comments(soup):
     texts = soup.find('div', id='content').find_all('div', class_='texts')
-    comments = []
-    for comment in texts:
-        comments.append(comment.find('span').text)
+    comments = [comment.find('span').text for comment in texts]
     return comments
 
 
 def find_genre(soup):
     content = soup.find('div', id='content').find('span', class_='d_book')
     content = content.find_all('a')
-    genres = []
-    for genre in content:
-        genres.append(genre.text)
+    genres = [genre.text for genre in content]
     return genres
 
 
