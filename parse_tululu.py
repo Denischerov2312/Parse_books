@@ -15,12 +15,12 @@ from pathvalidate import sanitize_filename
 def parse_book_page(content):
     soup = BeautifulSoup(content, 'lxml')
     title = fing_title(soup)
-    genre = find_genre(soup)
+    genres = find_genres(soup)
     comments = find_comments(soup)
     image_url = find_image_url(soup)
     book = {
         'title': title,
-        'genre': genre,
+        'genres': genres,
         'comments': comments,
         'image_url': image_url,
     }
@@ -33,7 +33,7 @@ def find_comments(soup):
     return comments
 
 
-def find_genre(soup):
+def find_genres(soup):
     content = soup.find('div', id='content').find('span', class_='d_book')
     content = content.find_all('a')
     genres = [genre.text for genre in content]
