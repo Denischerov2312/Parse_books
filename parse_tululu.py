@@ -12,12 +12,12 @@ from bs4 import BeautifulSoup
 from pathvalidate import sanitize_filename
 
 
-def parse_book_page(content):
+def parse_book_page(content, response_url):
     soup = BeautifulSoup(content, 'lxml')
     title = fing_title(soup)
     genres = find_genres(soup)
     comments = find_comments(soup)
-    image_url = find_image_url(soup)
+    image_url = find_image_url(soup, response_url)
     book = {
         'title': title,
         'genres': genres,
@@ -46,9 +46,9 @@ def fing_title(soup):
     return title.strip()
 
 
-def find_image_url(soup):
+def find_image_url(soup, response_url):
     url = soup.find('div', class_='bookimage').find('img')['src']
-    return urljoin('https://tululu.org/', url)
+    return urljoin(response_url, url)
 
 
 def check_for_redirect(response):
@@ -110,7 +110,7 @@ def main():
         except requests.HTTPError:
             print(f'Не существует такой ссылки - {url}')
             continue
-        book = parse_book_page(response.text)
+        book = parse_book_page(response.text, response.url)
         filename = f"{book_id}.{book['title']}"
         params = {'id': book_id}
         params = urlencode(params)
