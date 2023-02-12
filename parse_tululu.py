@@ -111,10 +111,19 @@ def main():
         params = {'id': book_id}
         params = urlencode(params)
         text_url = f'https://tululu.org/txt.php?{params}'
+        image_url = book['image_url']
+
         if text_url:
-            download_txt(text_url, filename)
+            try:
+                download_txt(text_url, filename)
+            except requests.HTTPError:
+                print(f'Не существует такой ссылки - {url}')
+
         if book['image_url']:
-            download_image(book['image_url'])
+            try:
+                download_image(image_url)
+            except requests.HTTPError:
+                print(f'Не существует такой ссылки - {image_url}')
 
 
 if __name__ == '__main__':
