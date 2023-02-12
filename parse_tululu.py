@@ -57,8 +57,6 @@ def check_for_redirect(response):
 
 
 def download_txt(url, filename, folder='books/'):
-    if not url:
-        return None
     response = requests.get(url)
     try:
         response.raise_for_status()
@@ -74,8 +72,6 @@ def download_txt(url, filename, folder='books/'):
 
 
 def download_image(url, folder='book_covers/'):
-    if not url:
-        return None
     response = requests.get(url)
     try:
         response.raise_for_status()
@@ -115,8 +111,10 @@ def main():
         params = {'id': book_id}
         params = urlencode(params)
         text_url = f'https://tululu.org/txt.php?{params}'
-        download_txt(text_url, filename)
-        download_image(book['image_url'])
+        if text_url:
+            download_txt(text_url, filename)
+        if book['image_url']:
+            download_image(book['image_url'])
 
 
 if __name__ == '__main__':
