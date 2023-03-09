@@ -1,4 +1,5 @@
 import os
+import time
 import argparse
 from os.path import split
 from os.path import join
@@ -58,12 +59,8 @@ def check_for_redirect(response):
 
 def download_txt(url, filename, folder='books/'):
     response = requests.get(url)
-    try:
-        response.raise_for_status()
-        check_for_redirect(response)
-    except requests.HTTPError:
-        print(f'Не существует такой ссылки - {url}')
-        return None
+    response.raise_for_status()
+    check_for_redirect(response)
     os.makedirs(folder, exist_ok=True)
     filepath = join(folder, sanitize_filename(filename))
     with open(filepath, 'w', encoding='UTF-8') as file:
@@ -73,12 +70,8 @@ def download_txt(url, filename, folder='books/'):
 
 def download_image(url, folder='book_covers/'):
     response = requests.get(url)
-    try:
-        response.raise_for_status()
-        check_for_redirect(response)
-    except requests.HTTPError:
-        print(f'Не существует такой ссылки - {url}')
-        return None
+    response.raise_for_status()
+    check_for_redirect(response)
     path = urlsplit(url).path
     filename = unquote(split(path)[-1])
     os.makedirs(folder, exist_ok=True)
@@ -95,15 +88,40 @@ def get_args():
     return parser.parse_args()
 
 
+def download_book(filename, text_url, image_url):
+    while True:
+        try:
+            download_txt(text_url, filename)
+            download_image(image_url)
+            return
+        except requests.exceptions.ConnectionError:
+            print('Ошибка подключения')
+            time.sleep(5)
+        except requests.exceptions.HTTPError:
+            print('Не существует такого url')
+            return
+
+
+def get(url):
+    while True:
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+            check_for_redirect(response)
+            break
+        except requests.exceptions.ConnectionError:
+            print('Ошибка подключения')
+            time.sleep(5)
+    return response
+
+
 def main():
     args = get_args()
     for book_id in range(args.start_id, args.end_id):
         url = f'https://tululu.org/b{book_id}/'
-        response = requests.get(url)
         try:
-            response.raise_for_status()
-            check_for_redirect(response)
-        except requests.HTTPError:
+            response = get(url)
+        except requests.exceptions.HTTPError:
             print(f'Не существует такой ссылки - {url}')
             continue
         book = parse_book_page(response.text, response.url)
@@ -112,18 +130,7 @@ def main():
         params = urlencode(params)
         text_url = f'https://tululu.org/txt.php?{params}'
         image_url = book['image_url']
-
-        if text_url:
-            try:
-                download_txt(text_url, filename)
-            except requests.HTTPError:
-                print(f'Не существует такой ссылки - {url}')
-
-        if book['image_url']:
-            try:
-                download_image(image_url)
-            except requests.HTTPError:
-                print(f'Не существует такой ссылки - {image_url}')
+        download_book(filename, text_url, image_url)
 
 
 if __name__ == '__main__':
