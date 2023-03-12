@@ -83,8 +83,8 @@ def download_image(url, folder='book_covers/'):
 
 def get_args():
     parser = argparse.ArgumentParser(description='Скачивает книги')
-    parser.add_argument('start_id', type=int)
-    parser.add_argument('end_id', type=int)
+    parser.add_argument('start_id', type=int, help='id, от которой скачаются книги')
+    parser.add_argument('end_id', type=int, help='id, до которой скачаются книги')
     return parser.parse_args()
 
 
