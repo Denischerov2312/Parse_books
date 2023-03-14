@@ -102,7 +102,7 @@ def download_book(filename, params, image_url):
             return
 
 
-def get(url):
+def get_response(url):
     while True:
         try:
             response = requests.get(url)
@@ -120,7 +120,7 @@ def main():
     for book_id in range(args.start_id, args.end_id):
         url = f'https://tululu.org/b{book_id}/'
         try:
-            response = get(url)
+            response = get_response(url)
         except requests.exceptions.HTTPError:
             print(f'Не существует такой ссылки - {url}')
             continue
