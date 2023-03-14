@@ -6,7 +6,6 @@ from os.path import join
 from urllib.parse import urljoin
 from urllib.parse import unquote
 from urllib.parse import urlsplit
-from urllib.parse import urlencode
 
 import requests
 from bs4 import BeautifulSoup
@@ -57,8 +56,8 @@ def check_for_redirect(response):
         raise requests.HTTPError
 
 
-def download_txt(url, filename, folder='books/'):
-    response = requests.get(url)
+def download_txt(url, params, filename, folder='books/'):
+    response = requests.get(url, params=params)
     response.raise_for_status()
     check_for_redirect(response)
     os.makedirs(folder, exist_ok=True)
@@ -88,10 +87,11 @@ def get_args():
     return parser.parse_args()
 
 
-def download_book(filename, text_url, image_url):
+def download_book(filename, params, image_url):
     while True:
+        url = 'https://tululu.org/txt.php'
         try:
-            download_txt(text_url, filename)
+            download_txt(url, params, filename)
             download_image(image_url)
             return
         except requests.exceptions.ConnectionError:
@@ -127,10 +127,8 @@ def main():
         book = parse_book_page(response.text, response.url)
         filename = f"{book_id}.{book['title']}"
         params = {'id': book_id}
-        params = urlencode(params)
-        text_url = f'https://tululu.org/txt.php?{params}'
         image_url = book['image_url']
-        download_book(filename, text_url, image_url)
+        download_book(filename, params, image_url)
 
 
 if __name__ == '__main__':
