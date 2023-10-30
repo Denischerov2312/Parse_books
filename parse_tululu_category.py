@@ -64,7 +64,7 @@ def get_book1(book_url):
 
 
 if __name__ == '__main__':
-    for page in range(1, 2):
+    for page in range(1, 3):
         url = f'https://tululu.org/l55/{page}/'
         page_book_urls = find_books_urls(get_books_soup(url))
         for book_url in page_book_urls:
@@ -77,7 +77,7 @@ if __name__ == '__main__':
             book = parse_book_page(response.text, response.url)
             filename = f"{book_id}.{book['title']}"
             image_url = book['image_url']
-            download_book(filename, book_id, image_url)
+            # download_book(filename, book_id, image_url)
             book_json = json.dumps(book)
-            with open(f'json_books/{book["title"]}json.json', 'w') as json_file:
-                json_file.write(book_json)
+            with open(f'json_books/{book["title"]}json.json', 'w', encoding='utf8') as file:
+                json.dump(book, file, ensure_ascii=False)
