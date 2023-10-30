@@ -77,7 +77,7 @@ if __name__ == '__main__':
             book = parse_book_page(response.text, response.url)
             filename = f"{book_id}.{book['title']}"
             image_url = book['image_url']
-            # download_book(filename, book_id, image_url)
+            download_book(filename, book_id, image_url)
             book_json = json.dumps(book)
             with open(f'json_books/{book["title"]}json.json', 'w', encoding='utf8') as file:
                 json.dump(book, file, ensure_ascii=False)
