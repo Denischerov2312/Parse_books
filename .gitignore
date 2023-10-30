@@ -1,6 +1,7 @@
 books/
 book_covers/
 .vscode/
+json_books/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
