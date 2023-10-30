@@ -56,7 +56,8 @@ def check_for_redirect(response):
         raise requests.HTTPError
 
 
-def download_txt(url, params, filename, folder='books/'):
+def download_txt(url, id, filename, folder='books/'):
+    params = {'id': id}
     response = requests.get(url, params=params)
     response.raise_for_status()
     check_for_redirect(response)
@@ -87,11 +88,11 @@ def get_args():
     return parser.parse_args()
 
 
-def download_book(filename, params, image_url):
+def download_book(filename, id, image_url):
     while True:
         url = 'https://tululu.org/txt.php'
         try:
-            download_txt(url, params, filename)
+            download_txt(url, id, filename)
             download_image(image_url)
             return
         except requests.exceptions.ConnectionError:
@@ -126,9 +127,8 @@ def main():
             continue
         book = parse_book_page(response.text, response.url)
         filename = f"{book_id}.{book['title']}"
-        params = {'id': book_id}
         image_url = book['image_url']
-        download_book(filename, params, image_url)
+        download_book(filename, book_id, image_url)
 
 
 if __name__ == '__main__':
