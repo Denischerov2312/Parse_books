@@ -31,24 +31,21 @@ def check_for_redirect(response):
 def get_books_soup(url):
     response = get_response(url)
     soup = BeautifulSoup(response.content, 'lxml')
-    return soup.find('div', id='content').find_all('table')
+    selector = 'div[id^=content] table'
+    return soup.select(selector)
 
 
 def find_books_urls(all_books):
     books_url = []
     for book in all_books:
-        book_id = book.find('a')['href']
+        book_id = book.select_one('a')['href']
         book_url = urljoin('https://tululu.org/', book_id)
         books_url.append(book_url)
     return books_url
 
 
 def main():
-    url = 'https://tululu.org/l55/1/'
-    response = get_response(url)
-    soup = BeautifulSoup(response.content, 'lxml')
-    book = soup.find('div', id='content').find('table').find('a')['href']
-    print(urljoin('https://tululu.org/', book))
+    pass
 
 
 def get_book1(book_url):
@@ -64,7 +61,7 @@ def get_book1(book_url):
 
 
 if __name__ == '__main__':
-    for page in range(1, 3):
+    for page in range(2, 3):
         url = f'https://tululu.org/l55/{page}/'
         page_book_urls = find_books_urls(get_books_soup(url))
         for book_url in page_book_urls:

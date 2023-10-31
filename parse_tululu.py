@@ -28,26 +28,28 @@ def parse_book_page(content, response_url):
 
 
 def find_comments(soup):
-    texts = soup.find('div', id='content').find_all('div', class_='texts')
+    selector = 'div[id^=content] div.texts'
+    texts = soup.select(selector)
     comments = [comment.find('span').text for comment in texts]
     return comments
 
 
 def find_genres(soup):
-    content = soup.find('div', id='content').find('span', class_='d_book')
-    content = content.find_all('a')
+    selector = 'div[id^=content] span.d_book a'
+    content = soup.select(selector)
     genres = [genre.text for genre in content]
     return genres
 
 
 def fing_title(soup):
-    heading = soup.find('h1').text
+    heading = soup.select_one('h1').text
     title = heading.split('::')[0]
     return title.strip()
 
 
 def find_image_url(soup, response_url):
-    url = soup.find('div', class_='bookimage').find('img')['src']
+    selector = 'div.bookimage img'
+    url = soup.select_one(selector)['src']
     return urljoin(response_url, url)
 
 
