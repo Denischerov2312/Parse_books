@@ -1,10 +1,13 @@
 import time
+import os
 import json
 from urllib.parse import urljoin
 from urllib.parse import urlsplit
 
 import requests
 from bs4 import BeautifulSoup
+from pathvalidate import sanitize_filename
+from os.path import join
 
 from parse_tululu import parse_book_page
 from parse_tululu import download_book
@@ -48,16 +51,15 @@ def main():
     pass
 
 
-def get_book1(book_url):
-    try:
-        response = get_response(book_url)
-    except requests.exceptions.HTTPError:
-        print(f'Не существует такой ссылки - {book_url}')
-        return False
-    book = parse_book_page(response.text, response.url)
-    filename = f"{book_id}.{book['title']}"
-    image_url = book['image_url']
-    download_book(filename, book_id, image_url)
+def download_book_json(book, folder='books_json/'):
+    os.makedirs(folder, exist_ok=True)
+    filename = f'{book["title"]}_json.json'
+    filepath = join(folder, sanitize_filename(filename))
+    with open(filepath, 'w', encoding='utf8') as file:
+        json.dump(book, file, ensure_ascii=False)
+
+def download_book(url,):
+
 
 
 if __name__ == '__main__':
@@ -75,6 +77,4 @@ if __name__ == '__main__':
             filename = f"{book_id}.{book['title']}"
             image_url = book['image_url']
             download_book(filename, book_id, image_url)
-            book_json = json.dumps(book)
-            with open(f'json_books/{book["title"]}json.json', 'w', encoding='utf8') as file:
-                json.dump(book, file, ensure_ascii=False)
+            download_book_json(book)
