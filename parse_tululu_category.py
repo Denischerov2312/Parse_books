@@ -11,6 +11,7 @@ from os.path import join
 
 from parse_tululu import parse_book_page
 from parse_tululu import download_book
+from parse_tululu import check_for_redirect
 
 
 def get_response(url):
@@ -24,11 +25,6 @@ def get_response(url):
             print('Ошибка подключения')
             time.sleep(5)
     return response
-
-
-def check_for_redirect(response):
-    if response.history:
-        raise requests.HTTPError
 
 
 def get_books_soup(url):
@@ -47,10 +43,6 @@ def find_books_urls(all_books):
     return books_url
 
 
-def main():
-    pass
-
-
 def download_book_json(book, folder='books_json/'):
     os.makedirs(folder, exist_ok=True)
     filename = f'{book["title"]}_json.json'
@@ -58,11 +50,8 @@ def download_book_json(book, folder='books_json/'):
     with open(filepath, 'w', encoding='utf8') as file:
         json.dump(book, file, ensure_ascii=False)
 
-def download_book(url,):
 
-
-
-if __name__ == '__main__':
+def main():
     for page in range(2, 3):
         url = f'https://tululu.org/l55/{page}/'
         page_book_urls = find_books_urls(get_books_soup(url))
@@ -78,3 +67,7 @@ if __name__ == '__main__':
             image_url = book['image_url']
             download_book(filename, book_id, image_url)
             download_book_json(book)
+
+
+if __name__ == '__main__':
+    main()
