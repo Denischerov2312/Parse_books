@@ -59,6 +59,7 @@ def check_for_redirect(response):
 
 
 def download_txt(url, id, filename, folder='books/'):
+    id = id
     params = {'id': id}
     response = requests.get(url, params=params)
     response.raise_for_status()
@@ -121,11 +122,11 @@ def get_response(url):
 def main():
     args = get_args()
     for book_id in range(args.start_id, args.end_id):
-        url = f'https://tululu.org/b{book_id}/'
+        url = f'https://tululu.org/b{id}/'
         try:
             response = get_response(url)
         except requests.exceptions.HTTPError:
-            print(f'Не существует такой ссылки - {url}')
+            print('Не существует такой ссылки')
             continue
         book = parse_book_page(response.text, response.url)
         filename = f"{book_id}.{book['title']}"

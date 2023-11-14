@@ -1,30 +1,16 @@
-import time
 import os
 import json
-from urllib.parse import urljoin
-from urllib.parse import urlsplit
+import argparse
 
 import requests
 from bs4 import BeautifulSoup
 from pathvalidate import sanitize_filename
 from os.path import join
+from urllib.parse import urlsplit
 
 from parse_tululu import parse_book_page
 from parse_tululu import download_book
-from parse_tululu import check_for_redirect
-
-
-def get_response(url):
-    while True:
-        try:
-            response = requests.get(url)
-            response.raise_for_status()
-            check_for_redirect(response)
-            break
-        except requests.exceptions.ConnectionError:
-            print('Ошибка подключения')
-            time.sleep(5)
-    return response
+from parse_tululu import get_response
 
 
 def get_books_soup(url):
@@ -34,13 +20,19 @@ def get_books_soup(url):
     return soup.select(selector)
 
 
-def find_books_urls(all_books):
-    books_url = []
+def format_book_id(id):
+    id = str(urlsplit(id).path)
+    id = id.replace('/', '').replace('b', '')
+    return id
+
+
+def find_books_id(all_books):
+    books_id = []
     for book in all_books:
         book_id = book.select_one('a')['href']
-        book_url = urljoin('https://tululu.org/', book_id)
-        books_url.append(book_url)
-    return books_url
+        book_id = format_book_id(book_id)
+        books_id.append(book_id)
+    return books_id
 
 
 def download_book_json(book, folder='books_json/'):
@@ -51,16 +43,28 @@ def download_book_json(book, folder='books_json/'):
         json.dump(book, file, ensure_ascii=False)
 
 
+def get_args():
+    parser = argparse.ArgumentParser(description='Скачивает раздел жанр книг')
+    parser.add_argument('--start_page', type=int,
+                        help='Стартовая страница',
+                        default=1)
+    parser.add_argument('--end_page', type=int,
+                        help='Конечная страница',
+                        default=2)
+    return parser.parse_args()
+
+
 def main():
-    for page in range(2, 3):
+    args = get_args()
+    for page in range(args.start_page, args.end_page):
         url = f'https://tululu.org/l55/{page}/'
-        page_book_urls = find_books_urls(get_books_soup(url))
-        for book_url in page_book_urls:
-            book_id = str(urlsplit(book_url).path).replace('/', '').replace('b', '')
+        page_book_id = find_books_id(get_books_soup(url))
+        for book_id in page_book_id:
+            url = f'https://tululu.org/b{book_id}/'
             try:
-                response = get_response(book_url)
+                response = get_response(url)
             except requests.exceptions.HTTPError:
-                print(f'Не существует такой ссылки - {book_url}')
+                print('Не существует такой книги')
                 continue
             book = parse_book_page(response.text, response.url)
             filename = f"{book_id}.{book['title']}"
