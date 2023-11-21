@@ -35,27 +35,41 @@ def find_books_id(all_books):
     return books_id
 
 
-def download_book_json(book, folder='books_json/'):
-    os.makedirs(folder, exist_ok=True)
+def download_book_json(book, dest_folder, folder='books_json/'):
+    path = join(dest_folder, folder)
+    os.makedirs(path, exist_ok=True)
     filename = f'{book["title"]}_json.json'
-    filepath = join(folder, sanitize_filename(filename))
+    filepath = join(path, sanitize_filename(filename))
     with open(filepath, 'w', encoding='utf8') as file:
         json.dump(book, file, ensure_ascii=False)
 
 
-def get_args():
-    parser = argparse.ArgumentParser(description='Скачивает раздел жанр книг')
+def add_args(parser):
     parser.add_argument('--start_page', type=int,
                         help='Стартовая страница',
                         default=1)
     parser.add_argument('--end_page', type=int,
                         help='Конечная страница',
                         default=2)
+    parser.add_argument('--dest_folder', type=str,
+                        help='путь к каталогу с результатами парсинга',
+                        default='parse_result/'
+                        )
+    parser.add_argument('--skip_txt', action='store_true',
+                        help='При False не скачивает текст книги', default=False)
+    parser.add_argument('--skip_imgs', action='store_true',
+                        help='При False не скачивает обложки', default=False)
+    return parser
+
+
+def get_args(description):
+    parser = argparse.ArgumentParser(description)
+    add_args(parser)
     return parser.parse_args()
 
 
 def main():
-    args = get_args()
+    args = get_args('Скачивает раздел жанр книг')
     for page in range(args.start_page, args.end_page):
         url = f'https://tululu.org/l55/{page}/'
         page_book_id = find_books_id(get_books_soup(url))
@@ -69,8 +83,9 @@ def main():
             book = parse_book_page(response.text, response.url)
             filename = f"{book_id}.{book['title']}"
             image_url = book['image_url']
-            download_book(filename, book_id, image_url)
-            download_book_json(book)
+            dest_folder = args.dest_folder
+            download_book(filename, book_id, image_url, dest_folder, args.skip_txt, args.skip_imgs)
+            download_book_json(book, dest_folder)
 
 
 if __name__ == '__main__':

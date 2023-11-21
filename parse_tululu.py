@@ -58,45 +58,54 @@ def check_for_redirect(response):
         raise requests.HTTPError
 
 
-def download_txt(url, id, filename, folder='books/'):
+def download_txt(url, id, filename, dest_folder, folder='books/'):
     id = id
     params = {'id': id}
     response = requests.get(url, params=params)
     response.raise_for_status()
     check_for_redirect(response)
-    os.makedirs(folder, exist_ok=True)
-    filepath = join(folder, sanitize_filename(filename))
+    path = join(dest_folder, folder)
+    os.makedirs(path, exist_ok=True)
+    filepath = join(path, sanitize_filename(filename))
     with open(filepath, 'w', encoding='UTF-8') as file:
         file.write(response.text)
     return filepath
 
 
-def download_image(url, folder='book_covers/'):
+def download_image(url, dest_folder, folder='book_covers/'):
     response = requests.get(url)
     response.raise_for_status()
     check_for_redirect(response)
     path = urlsplit(url).path
     filename = unquote(split(path)[-1])
-    os.makedirs(folder, exist_ok=True)
-    filepath = join(folder, sanitize_filename(filename))
+    path = join(dest_folder, folder)
+    os.makedirs(path, exist_ok=True)
+    filepath = join(path, sanitize_filename(filename))
     with open(filepath, 'wb') as file:
         file.write(response.content)
     return filepath
 
 
-def get_args():
-    parser = argparse.ArgumentParser(description='Скачивает книги')
+def add_args(parser):
     parser.add_argument('start_id', type=int, help='id, от которой скачаются книги')
     parser.add_argument('end_id', type=int, help='id, до которой скачаются книги')
+    return parser
+
+
+def get_args(description):
+    parser = argparse.ArgumentParser(description=description)
+    add_args(parser)
     return parser.parse_args()
 
 
-def download_book(filename, id, image_url):
+def download_book(filename, id, image_url, dest_folder, skip_txt=False, skip_imgs=False):
     while True:
         url = 'https://tululu.org/txt.php'
         try:
-            download_txt(url, id, filename)
-            download_image(image_url)
+            if not skip_txt:
+                download_txt(url, id, filename, dest_folder)
+            if not skip_imgs:
+                download_image(image_url, dest_folder)
             return
         except requests.exceptions.ConnectionError:
             print('Ошибка подключения')
@@ -120,7 +129,7 @@ def get_response(url):
 
 
 def main():
-    args = get_args()
+    args = get_args('Скачивает книги')
     for book_id in range(args.start_id, args.end_id):
         url = f'https://tululu.org/b{id}/'
         try:
