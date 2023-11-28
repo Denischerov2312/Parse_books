@@ -89,6 +89,14 @@ def download_image(url, dest_folder, folder='book_covers/'):
 def add_args(parser):
     parser.add_argument('start_id', type=int, help='id, от которой скачаются книги')
     parser.add_argument('end_id', type=int, help='id, до которой скачаются книги')
+    parser.add_argument('--dest_folder', type=str,
+                        help='путь к каталогу с результатами парсинга',
+                        default='parse_result/'
+                        )
+    parser.add_argument('--skip_txt', action='store_true',
+                        help='При True не скачивает текст книги', default=False)
+    parser.add_argument('--skip_imgs', action='store_true',
+                        help='При True не скачивает обложки', default=False)
     return parser
 
 
@@ -131,7 +139,7 @@ def get_response(url):
 def main():
     args = get_args('Скачивает книги')
     for book_id in range(args.start_id, args.end_id):
-        url = f'https://tululu.org/b{id}/'
+        url = f'https://tululu.org/b{book_id}/'
         try:
             response = get_response(url)
         except requests.exceptions.HTTPError:
@@ -140,7 +148,8 @@ def main():
         book = parse_book_page(response.text, response.url)
         filename = f"{book_id}.{book['title']}"
         image_url = book['image_url']
-        download_book(filename, book_id, image_url)
+        download_book(filename, book_id, image_url,
+                      args.dest_folder, args.skip_txt, args.skip_imgs)
 
 
 if __name__ == '__main__':

@@ -56,9 +56,9 @@ def add_args(parser):
                         default='parse_result/'
                         )
     parser.add_argument('--skip_txt', action='store_true',
-                        help='При False не скачивает текст книги', default=False)
+                        help='При True не скачивает текст книги', default=False)
     parser.add_argument('--skip_imgs', action='store_true',
-                        help='При False не скачивает обложки', default=False)
+                        help='При True не скачивает обложки', default=False)
     return parser
 
 
