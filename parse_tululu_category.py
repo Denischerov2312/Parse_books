@@ -13,13 +13,6 @@ from parse_tululu import download_book
 from parse_tululu import get_response
 
 
-def get_books_soup(url):
-    response = get_response(url)
-    soup = BeautifulSoup(response.content, 'lxml')
-    selector = 'div[id^=content] table'
-    return soup.select(selector)
-
-
 def format_book_id(id):
     id = str(urlsplit(id).path)
     id = id.replace('/', '').replace('b', '')
@@ -44,7 +37,8 @@ def download_book_json(book, dest_folder, folder='books_json/'):
         json.dump(book, file, ensure_ascii=False)
 
 
-def add_args(parser):
+def get_args(description):
+    parser = argparse.ArgumentParser(description)
     parser.add_argument('--start_page', type=int,
                         help='Стартовая страница',
                         default=1)
@@ -59,12 +53,6 @@ def add_args(parser):
                         help='При True не скачивает текст книги', default=False)
     parser.add_argument('--skip_imgs', action='store_true',
                         help='При True не скачивает обложки', default=False)
-    return parser
-
-
-def get_args(description):
-    parser = argparse.ArgumentParser(description)
-    add_args(parser)
     return parser.parse_args()
 
 
@@ -72,7 +60,10 @@ def main():
     args = get_args('Скачивает раздел жанр книг')
     for page in range(args.start_page, args.end_page):
         url = f'https://tululu.org/l55/{page}/'
-        page_book_id = find_books_id(get_books_soup(url))
+        response = get_response(url)
+        soup = BeautifulSoup(response.content, 'lxml')
+        selector = 'div[id^=content] table'
+        page_book_id = find_books_id(soup.select(selector))
         for book_id in page_book_id:
             url = f'https://tululu.org/b{book_id}/'
             try:
