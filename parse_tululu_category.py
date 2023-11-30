@@ -21,8 +21,8 @@ def format_book_id(id):
 
 def find_book_ids(all_books):
     book_ids = []
-    for book in all_books:
-        book_id = book.select_one('a')['href']
+    for soup in all_books:
+        book_id = soup.select_one('a')['href']
         book_id = format_book_id(book_id)
         book_ids.append(book_id)
     return book_ids
