@@ -13,6 +13,7 @@ from parse_tululu import download_book
 from parse_tululu import get_response
 
 
+
 def format_book_id(id):
     id = str(urlsplit(id).path)
     id = id.replace('/', '').replace('b', '')
@@ -58,8 +59,8 @@ def get_args(description):
 
 def main():
     args = get_args('Скачивает раздел жанр книг')
-    for page in range(args.start_page, args.end_page):
-        url = f'https://tululu.org/l55/{page}/'
+    for page_number in range(args.start_page, args.end_page):
+        url = f'https://tululu.org/l55/{page_number}/'
         response = get_response(url)
         soup = BeautifulSoup(response.content, 'lxml')
         selector = 'div[id^=content] table'
