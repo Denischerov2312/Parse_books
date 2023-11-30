@@ -58,9 +58,8 @@ def check_for_redirect(response):
         raise requests.HTTPError
 
 
-def download_txt(url, id, filename, dest_folder, folder='books/'):
-    id = id
-    params = {'id': id}
+def download_txt(url, book_id, filename, dest_folder, folder='books/'):
+    params = {'id': book_id}
     response = requests.get(url, params=params)
     response.raise_for_status()
     check_for_redirect(response)
@@ -86,7 +85,8 @@ def download_image(url, dest_folder, folder='book_covers/'):
     return filepath
 
 
-def add_args(parser):
+def get_args(description):
+    parser = argparse.ArgumentParser(description=description)
     parser.add_argument('start_id', type=int, help='id, от которой скачаются книги')
     parser.add_argument('end_id', type=int, help='id, до которой скачаются книги')
     parser.add_argument('--dest_folder', type=str,
@@ -97,12 +97,6 @@ def add_args(parser):
                         help='При True не скачивает текст книги', default=False)
     parser.add_argument('--skip_imgs', action='store_true',
                         help='При True не скачивает обложки', default=False)
-    return parser
-
-
-def get_args(description):
-    parser = argparse.ArgumentParser(description=description)
-    add_args(parser)
     return parser.parse_args()
 
 
