@@ -13,20 +13,19 @@ from parse_tululu import download_book
 from parse_tululu import get_response
 
 
-
 def format_book_id(id):
     id = str(urlsplit(id).path)
     id = id.replace('/', '').replace('b', '')
     return id
 
 
-def find_books_id(all_books):
-    books_id = []
+def find_book_ids(all_books):
+    book_ids = []
     for book in all_books:
         book_id = book.select_one('a')['href']
         book_id = format_book_id(book_id)
-        books_id.append(book_id)
-    return books_id
+        book_ids.append(book_id)
+    return book_ids
 
 
 def download_book_json(book, dest_folder, folder='books_json/'):
@@ -64,8 +63,8 @@ def main():
         response = get_response(url)
         soup = BeautifulSoup(response.content, 'lxml')
         selector = 'div[id^=content] table'
-        page_book_id = find_books_id(soup.select(selector))
-        for book_id in page_book_id:
+        page_book_ids = find_book_ids(soup.select(selector))
+        for book_id in page_book_ids:
             url = f'https://tululu.org/b{book_id}/'
             try:
                 response = get_response(url)
