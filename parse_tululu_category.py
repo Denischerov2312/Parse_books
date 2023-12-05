@@ -60,7 +60,11 @@ def main():
     args = get_args('Скачивает раздел жанр книг')
     for page_number in range(args.start_page, args.end_page):
         url = f'https://tululu.org/l55/{page_number}/'
-        response = get_response(url)
+        try:
+            response = get_response(url)
+        except requests.exceptions.HTTPError:
+            print(f'Не существует такой страницы - {url}')
+            continue
         soup = BeautifulSoup(response.content, 'lxml')
         selector = 'div[id^=content] table'
         page_book_ids = find_book_ids(soup.select(selector))
@@ -69,7 +73,7 @@ def main():
             try:
                 response = get_response(url)
             except requests.exceptions.HTTPError:
-                print('Не существует такой книги')
+                print(f'Не существует такой книги - {url}')
                 continue
             book = parse_book_page(response.text, response.url)
             filename = f"{book_id}.{book['title']}"
