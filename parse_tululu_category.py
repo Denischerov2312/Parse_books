@@ -13,9 +13,9 @@ from parse_tululu import download_book
 from parse_tululu import get_response
 
 
-def format_book_id(book_id):
-    book_id = str(urlsplit(book_id).path)
-    book_id = book_id.replace('/', '').replace('b', '')
+def get_id(relative_path):
+    relative_path = str(urlsplit(relative_path).path)
+    book_id = relative_path.replace('/', '').replace('b', '')
     return book_id
 
 
@@ -23,7 +23,7 @@ def find_book_ids(all_books):
     book_ids = []
     for soup in all_books:
         relative_path = soup.select_one('a')['href']
-        book_id = format_book_id(relative_path)
+        book_id = get_id(relative_path)
         book_ids.append(book_id)
     return book_ids
 
