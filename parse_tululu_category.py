@@ -1,6 +1,7 @@
 import os
 import json
 import argparse
+import time
 
 import requests
 from bs4 import BeautifulSoup
@@ -28,13 +29,13 @@ def find_book_ids(all_books):
     return book_ids
 
 
-def save_book_json(book, dest_folder, folder='books_json/'):
+def save_books_json(books, dest_folder, folder='books_json/'):
     path = join(dest_folder, folder)
     os.makedirs(path, exist_ok=True)
-    filename = f'{book["title"]}_json.json'
+    filename = f'{len(books)}books_json.json'
     filepath = join(path, sanitize_filename(filename))
     with open(filepath, 'w', encoding='utf8') as file:
-        json.dump(book, file, ensure_ascii=False)
+        json.dump(books, file, ensure_ascii=False, indent=4)
 
 
 def get_args(description):
@@ -58,6 +59,7 @@ def get_args(description):
 
 def main():
     args = get_args('Скачивает раздел жанр книг')
+    books_json = []
     for page_number in range(args.start_page, args.end_page):
         url = f'https://tululu.org/l55/{page_number}/'
         try:
@@ -79,8 +81,21 @@ def main():
             filename = f"{book_id}.{book['title']}"
             image_url = book['image_url']
             dest_folder = args.dest_folder
-            download_book(filename, book_id, image_url, dest_folder, args.skip_txt, args.skip_imgs)
-            save_book_json(book, dest_folder)
+            while True:
+                try:
+                    book_path, img_path = download_book(filename, book_id, image_url,
+                                                        dest_folder, args.skip_txt, args.skip_imgs)
+                    break
+                except requests.exceptions.ConnectionError:
+                    print('Ошибка подключения')
+                    time.sleep(5)
+                except requests.exceptions.HTTPError:
+                    print('Не существует такого url')
+                    break
+            book['book_path'] = book_path
+            book['img_path'] = img_path
+            books_json.append(book)
+    save_books_json(books_json, dest_folder)
 
 
 if __name__ == '__main__':

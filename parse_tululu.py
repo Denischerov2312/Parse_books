@@ -17,14 +17,22 @@ def parse_book_page(content, response_url):
     title = fing_title(soup)
     genres = find_genres(soup)
     comments = find_comments(soup)
+    author = find_author(soup)
     image_url = find_image_url(soup, response_url)
     book = {
         'title': title,
+        'author': author,
         'genres': genres,
         'comments': comments,
         'image_url': image_url,
     }
     return book
+
+
+def find_author(soup):
+    heading = soup.select_one('h1').text
+    title = heading.split('::')[1]
+    return title.strip()
 
 
 def find_comments(soup):
@@ -58,16 +66,20 @@ def check_for_redirect(response):
         raise requests.HTTPError
 
 
-def download_txt(url, book_id, filename, dest_folder, folder='books/'):
+def download_txt(url, book_id):
     params = {'id': book_id}
     response = requests.get(url, params=params)
     response.raise_for_status()
     check_for_redirect(response)
+    return response.text
+
+
+def save_txt(text, filename, dest_folder, folder='books/'):
     path = join(dest_folder, folder)
     os.makedirs(path, exist_ok=True)
     filepath = join(path, sanitize_filename(filename))
     with open(filepath, 'w', encoding='UTF-8') as file:
-        file.write(response.text)
+        file.write(text)
     return filepath
 
 
@@ -75,13 +87,17 @@ def download_image(url, dest_folder, folder='book_covers/'):
     response = requests.get(url)
     response.raise_for_status()
     check_for_redirect(response)
-    path = urlsplit(url).path
-    filename = unquote(split(path)[-1])
+    return response.content
+
+
+def save_image(content, url, dest_folder, folder='book_covers/'):
+    url_path = urlsplit(url).path
+    filename = unquote(split(url_path)[-1])
     path = join(dest_folder, folder)
     os.makedirs(path, exist_ok=True)
     filepath = join(path, sanitize_filename(filename))
     with open(filepath, 'wb') as file:
-        file.write(response.content)
+        file.write(content)
     return filepath
 
 
@@ -102,10 +118,15 @@ def get_args(description):
 
 def download_book(filename, id, image_url, dest_folder, skip_txt=False, skip_imgs=False):
     url = 'https://tululu.org/txt.php'
+    book_path = None
+    img_path = None
     if not skip_txt:
-        download_txt(url, id, filename, dest_folder)
+        text = download_txt(url, id)
+        book_path = save_txt(text, filename, dest_folder)
     if not skip_imgs:
-        download_image(image_url, dest_folder)
+        image = download_image(image_url, dest_folder)
+        img_path = save_image(image, image_url, dest_folder)
+    return book_path, img_path
 
 
 def get_response(url):
