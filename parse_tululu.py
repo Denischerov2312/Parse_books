@@ -101,20 +101,11 @@ def get_args(description):
 
 
 def download_book(filename, id, image_url, dest_folder, skip_txt=False, skip_imgs=False):
-    while True:
-        url = 'https://tululu.org/txt.php'
-        try:
-            if not skip_txt:
-                download_txt(url, id, filename, dest_folder)
-            if not skip_imgs:
-                download_image(image_url, dest_folder)
-            return
-        except requests.exceptions.ConnectionError:
-            print('Ошибка подключения')
-            time.sleep(5)
-        except requests.exceptions.HTTPError:
-            print('Не существует такого url')
-            return
+    url = 'https://tululu.org/txt.php'
+    if not skip_txt:
+        download_txt(url, id, filename, dest_folder)
+    if not skip_imgs:
+        download_image(image_url, dest_folder)
 
 
 def get_response(url):
@@ -142,8 +133,17 @@ def main():
         book = parse_book_page(response.text, response.url)
         filename = f"{book_id}.{book['title']}"
         image_url = book['image_url']
-        download_book(filename, book_id, image_url,
-                      args.dest_folder, args.skip_txt, args.skip_imgs)
+        while True:
+            try:
+                download_book(filename, book_id, image_url,
+                              args.dest_folder, args.skip_txt, args.skip_imgs)
+                break
+            except requests.exceptions.ConnectionError:
+                print('Ошибка подключения')
+                time.sleep(5)
+            except requests.exceptions.HTTPError:
+                print('Не существует такого url')
+                break
 
 
 if __name__ == '__main__':
