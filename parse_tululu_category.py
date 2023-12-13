@@ -28,7 +28,7 @@ def find_book_ids(all_books):
     return book_ids
 
 
-def download_book_json(book, dest_folder, folder='books_json/'):
+def save_book_json(book, dest_folder, folder='books_json/'):
     path = join(dest_folder, folder)
     os.makedirs(path, exist_ok=True)
     filename = f'{book["title"]}_json.json'
@@ -80,7 +80,7 @@ def main():
             image_url = book['image_url']
             dest_folder = args.dest_folder
             download_book(filename, book_id, image_url, dest_folder, args.skip_txt, args.skip_imgs)
-            download_book_json(book, dest_folder)
+            save_book_json(book, dest_folder)
 
 
 if __name__ == '__main__':
