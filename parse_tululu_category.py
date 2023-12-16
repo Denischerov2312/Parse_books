@@ -59,7 +59,7 @@ def get_args(description):
 
 def main():
     args = get_args('Скачивает раздел жанр книг')
-    books_json = []
+    books = []
     for page_number in range(args.start_page, args.end_page):
         url = f'https://tululu.org/l55/{page_number}/'
         try:
@@ -94,8 +94,8 @@ def main():
                     break
             book['book_path'] = book_path
             book['img_path'] = img_path
-            books_json.append(book)
-    save_books_json(books_json, dest_folder)
+            books.append(book)
+    save_books_json(books, dest_folder)
 
 
 if __name__ == '__main__':
