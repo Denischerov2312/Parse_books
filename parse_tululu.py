@@ -78,6 +78,7 @@ def save_txt(text, filename, dest_folder, folder='books/'):
     path = join(dest_folder, folder)
     os.makedirs(path, exist_ok=True)
     filepath = join(path, sanitize_filename(filename))
+    filepath = f'{filepath}.txt'
     with open(filepath, 'w', encoding='UTF-8') as file:
         file.write(text)
     return filepath
