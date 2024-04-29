@@ -84,7 +84,12 @@ def main():
             while True:
                 try:
                     book_path, img_path = download_book(filename, book_id, image_url,
-                                                        dest_folder, args.skip_txt, args.skip_imgs)
+                                                        dest_folder, args.skip_txt,
+                                                        args.skip_imgs,
+                                                        )
+                    book['book_path'] = book_path
+                    book['img_path'] = img_path
+                    books.append(book)
                     break
                 except requests.exceptions.ConnectionError:
                     print('Ошибка подключения')
@@ -92,9 +97,7 @@ def main():
                 except requests.exceptions.HTTPError:
                     print('Не существует такого url')
                     break
-            book['book_path'] = book_path
-            book['img_path'] = img_path
-            books.append(book)
+
     save_books_json(books, dest_folder)
 
 
